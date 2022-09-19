@@ -1,0 +1,11 @@
+options = optimoptions('fmincon','Display','iter','Algorithm','sqp');
+A = [];
+b = [];
+Aeq = [];
+beq = [];
+lb = 3;
+ub = 5;
+nonlcon = [];
+x0 = 3;
+tau=18e-3;
+x = fmincon(@(g) CostF(g,tau),x0,A,b,Aeq,beq,lb,ub,nonlcon,options)
