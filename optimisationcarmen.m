@@ -7,5 +7,5 @@ lb = 3;
 ub = 5;
 nonlcon = [];
 x0 = 3;
-tau=18e-3;
+tau=9/500;
 x = fmincon(@(g) CostF(g,tau),x0,A,b,Aeq,beq,lb,ub,nonlcon,options)

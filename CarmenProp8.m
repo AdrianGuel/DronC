@@ -8,39 +8,53 @@ close all
 fig=figure('visible','on');
 set(fig, 'Position',  [454,239,919,573])
 set(gcf,'color','w');
-ax1 = axes();
+ax1 = subplot(1,2,1);
 hold(ax1,'on')
 grid(ax1,'on')
-%xlabel(ax1,'$k_p$','Interpreter','Latex','FontSize', 14)
-%ylabel(ax1,'$k_d$','Interpreter','Latex','FontSize', 14)
-xlabel(ax1,'$\sigma$','Interpreter','Latex','FontSize', 14)
-ylabel(ax1,'$v(\sigma)$','Interpreter','Latex','FontSize', 14)
+xlabel(ax1,'$k_p$','Interpreter','Latex','FontSize', 14)
+ylabel(ax1,'$k_d$','Interpreter','Latex','FontSize', 14)
 axis(ax1,'square')
-%axis(ax1,[0 10 3 7])
+axis(ax1,[5.5 6.9 3.9 4.02])
 
-gk=3;gk1=0; 
-dg=1e-2;
-tau=0.018;
-tol=1e-8;
-error=1;
+ax2 = subplot(1,2,2);
+hold(ax2,'on')
+grid(ax2,'on')
+xlabel(ax2,'$\sigma$','Interpreter','Latex','FontSize', 14)
+ylabel(ax2,'$v(\sigma)$','Interpreter','Latex','FontSize', 14)
+axis(ax2,'square')
+axis(ax2,[3.8 4.25 1 2])
 
-while gk<5 && error>tol  
-    gk1=gk+dg;
+options = optimoptions('fmincon','Display','iter');%,'Algorithm','sqp');
+A = [];
+b = [];
+Aeq = [];
+beq = [];
+lb = 3;
+ub = 7;
+nonlcon = [];
+x0 = 3;
+tau=9/500;
+x = fmincon(@(g) CostF(g,tau),x0,A,b,Aeq,beq,lb,ub,nonlcon,options);
+wf = abs(fzero(@(w) fgw(x,w,tau),3));
+w=linspace(1e-5,abs(wf),8000);
+plot(ax2,x,v(x,w,tau),'bo')
+text(ax2,x,v(x,w,tau)+.5, "\sigma =" + x)
+
+gk=3.8;
+dg=1e-3;
+tau=9/500;
+while gk<4.3   
+    gk=gk+dg;
     wf = abs(fzero(@(w) fgw(gk,w,tau),3));
-    w=linspace(1e-5,abs(wf),8000);
-    wfk1 = abs(fzero(@(w) fgw(gk1,w,tau),3));
-    wk1=linspace(1e-5,abs(wfk1),8000);    
-    error=abs((v(gk1,wk1,tau)-v(gk,w,tau))/v(gk1,wk1,tau));
-    gk=gk1;
-    
-    %[kps,kds]=sregion(-gk,w,tau);
-    %plot(ax1,kps,kds,'b')
-    %[kpg0,kdg0]=K0(gk,tau);
-    %kd0=kdg0:0.1:kds(end);
-    %plot(ax1,region0(-gk,kd0,tau),kd0,'r')
-    plot(ax1,gk,v(gk,w,tau),'k.')
-    %hText=text(ax1,6, 3.5, "error =" + error);
-    pause(0.01)
-    %delete(hText);
+    w=linspace(1e-5,abs(wf),8000);    
+    plot(ax2,gk,v(gk,w,tau),'k.')
 end
-disp(gk)
+
+wf = abs(fzero(@(w) fgw(x,w,tau),3));
+w=linspace(1e-5,abs(wf),8000);    
+[kps,kds]=sregion(-x,w,tau);
+fill(ax1,kps,kds,[0.8,0.8,0.8])
+plot(ax1,kps,kds,'b','LineWidth',2)
+[kpg0,kdg0]=K0(x,tau);
+kd0=kdg0:1e-3:kds(end);
+plot(ax1,region0(-x,kd0,tau),kd0,'r','LineWidth',2)
